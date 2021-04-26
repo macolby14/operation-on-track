@@ -1,6 +1,8 @@
 import { providers, signIn } from "next-auth/client";
 
-export default function SignIn({ providers }) {
+export default function SignIn({ providersProp }) {
+  console.log({ providersProp });
+
   return (
     <div
       style={{
@@ -12,7 +14,7 @@ export default function SignIn({ providers }) {
       }}
     >
       <h2>Sign In with OAuth Providers:</h2>
-      {Object.values(providers).map((provider) => (
+      {Object.values(providersProp).map((provider) => (
         <div key={provider.name}>
           <button
             style={{
@@ -46,8 +48,21 @@ export default function SignIn({ providers }) {
 
 // This is the recommended way for Next.js 9.3 or newer
 export async function getServerSideProps(context) {
-  const providersRes = await providers();
-  return {
-    props: { providers: providersRes },
-  };
+  try {
+    const providersRes = await providers();
+    return {
+      props: { providersProp: providersRes },
+    };
+  } catch (e) {
+    const providersRes = {
+      google: {
+        id: "google",
+        name: "Google",
+        type: "oauth",
+        signinUrl: `${process.env.NEXTAUTH_URL}/api/auth/signin/google`,
+        callbackUrl: `${process.env.NEXTAUTH_URL}/api/auth/callback/google`,
+      },
+    };
+    return { props: { providersProp: providersRes } };
+  }
 }
